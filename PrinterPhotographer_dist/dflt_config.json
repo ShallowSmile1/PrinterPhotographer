@@ -1,0 +1,11 @@
+{
+  "camera": 0,
+  "resolution_w": 1920,
+  "resolution_h": 1080,
+  "port_command": "SMILE",
+  "bound_rate": 115200,
+  "byte_size": 8,
+  "port_num": "COM3",
+  "save_dir": "D:\\",
+  "delay": 1
+}
