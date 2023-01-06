@@ -10,7 +10,10 @@ class Camera:
         self.resolution_h = h
 
     def initialize(self):
-        self.cap = cv2.VideoCapture(self.cam_num, cv2.CAP_DSHOW)
+        try:
+            self.cap = cv2.VideoCapture(self.cam_num, cv2.CAP_DSHOW)
+        except FileNotFoundError as err:
+            raise err
         self.cap.set(cv2.CAP_PROP_FPS, 40)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.resolution_w)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.resolution_h)

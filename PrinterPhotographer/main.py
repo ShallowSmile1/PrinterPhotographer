@@ -14,3 +14,8 @@ if __name__ == "__main__":
     win = MainWindow(data)
     win.show()
     app.exit(app.exec_())
+
+
+# to create new dist version
+# pip install pyinstaller
+# pyinstaller main.py --name PrinterPhotographer --onedir -w

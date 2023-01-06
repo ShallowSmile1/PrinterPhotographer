@@ -67,6 +67,22 @@ selection-background-color: rgb(97, 97, 97);</string>
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="stop_btn">
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>60</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(173, 173, 173); font-size: 18pt;color:rgb(54, 54, 54)</string>
+          </property>
+          <property name="text">
+           <string>Stop</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="settings_btn">
           <property name="minimumSize">
            <size>

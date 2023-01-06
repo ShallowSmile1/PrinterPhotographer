@@ -1,13 +1,15 @@
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QThread, Qt
 from PyQt5.Qt import QImage, QPixmap
-from model.Comport import Comport
-from model.Camera import Camera
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets
+from serial import SerialException
 import datetime
 import time
 import cv2
 import os
+from model.Comport import Comport
+from model.Camera import Camera
 
 
 class VideoThread(QThread):
@@ -62,33 +64,67 @@ class MainWindow(QtWidgets.QMainWindow):
         self.resolution_h = data["resolution_h"]
         self.bound_rate = data["bound_rate"]
         self.byte_size = data["byte_size"]
-        self.port_num = data["port_num"]
         self.port_command = data["port_command"]
+        self.port_num = data["port_num"]
         self.save_dir = data["save_dir"]
         self.delay = data["delay"]
         self.camera_init()
-        # self.comport_init()
+        self.comport_init()
         self.start_button.clicked.connect(self.com_conn)
         self.settings_btn.clicked.connect(self.open_settings)
+        self.stop_btn.clicked.connect(self.stop_com_thread)
+        self.button_stilesheet(self.stop_btn, False)
+
+    def stop_com_thread(self):
+        if self.com_thread:
+            self.killthread(self.com_thread)
+            self.button_stilesheet(self.start_button, True)
+            self.button_stilesheet(self.stop_btn, False)
 
     def camera_init(self):
         self.camera = Camera(self.cam_num, self.resolution_w, self.resolution_h)
-        self.camera.initialize()
-        self.video_thread = VideoThread(main_window=self)
-        self.video_thread.start()
+        try:
+            self.camera.initialize()
+            self.video_thread = VideoThread(main_window=self)
+            self.video_thread.start()
+        except FileNotFoundError:
+            QMessageBox.critical(self, "Error",
+                                 f"Camera connection error.\nTry to change camera configs to correct ones or check camera connection.",
+                                 QMessageBox.Ok)
+            self.button_stilesheet(self.start_button, False)
+
 
     def comport_init(self):
         self.comport = Comport(self.port_num, self.bound_rate, self.byte_size, self.port_command)
-        self.comport.initialize()
-        self.com_thread = PortThread(
-            self.camera,
-            self.comport,
-            self.save_dir,
-            self.delay
-        )
+        try :
+            self.comport.initialize()
+            self.com_thread = PortThread(
+                self.camera,
+                self.comport,
+                self.save_dir,
+                self.delay
+            )
+        except FileNotFoundError:
+            QMessageBox.critical(self, "Error",
+                                 f"No port \"{self.port_num}\", try change port at settings.",
+                                 QMessageBox.Ok)
+            self.button_stilesheet(self.start_button, False)
+        except SerialException:
+            QMessageBox.critical(self, "Error",
+                                 f"Cannot create connection to port \"{self.port_num}\", try change port at settings.",
+                                 QMessageBox.Ok)
+            self.button_stilesheet(self.start_button, False)
+        except OSError:
+            QMessageBox.critical(self, "Error",
+                                 f"Port \"{self.port_num}\" is unavailable, try change port at settings.",
+                                 QMessageBox.Ok)
+            self.button_stilesheet(self.start_button, False)
 
     def com_conn(self):
         self.com_thread.start()
+        self.start_button.setEnabled(False)
+        self.button_stilesheet(self.start_button, False)
+        self.button_stilesheet(self.stop_btn, True)
 
     def update_image(self):
         frame = self.camera.get_frame()
@@ -101,9 +137,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_settings(self):
         from UI_classes.SettingsWindow import Settings
-        self.killthread(self.video_thread)
-        self.comport.close_port()
-        self.camera.close_camera()
+        if self.video_thread:
+            self.killthread(self.video_thread)
+        if self.com_thread:
+            self.killthread(self.com_thread)
+        if self.comport.connect:
+            self.comport.close_port()
+        if self.camera.cap:
+            self.camera.close_camera()
         self.settings = Settings()
         self.settings.setFixedWidth(640)
         self.settings.setFixedHeight(450)
@@ -113,4 +154,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def killthread(self, thread):
         thread.stop()
 
-
+    def button_stilesheet(self, btn, active):
+        if active:
+            btn.setStyleSheet("background-color: rgb(173, 173, 173); font-size: 18pt; color:rgb(54, 54, 54)")
+        else:
+            btn.setStyleSheet("background-color: rgb(143, 143, 143); font-size: 18pt; color:rgb(54, 54, 54)")
+        btn.setEnabled(active)

@@ -3,11 +3,9 @@ from PyQt5.uic import loadUi
 from PyQt5 import QtCore
 import json
 import cv2
-import os
 
 
 def read_data():
-    print(os.getcwd())
     try:
         with open("user_file.json", "r") as load_file:
             data = json.load(load_file)
@@ -34,7 +32,7 @@ def get_camera_list():
             h = camera.get(4)
             if is_reading:
                 working_ports.append(dev_port)
-        dev_port +=1
+        dev_port += 1
     ports = list(map(str, working_ports))
     return ports
 
@@ -48,7 +46,7 @@ class Settings(QDialog):
         self.parse_data(self.data)
 
         self.camera_box.addItems(get_camera_list())
-        self.resolution.addItems(["720x480", "1280x720", "1920x1080", "2048x1152", "4086x2160"])
+        self.resolution.addItems(["640x360", "960x540", "1280x720", "1920x1080", "2560x1440"])
 
         self.set_str_settings()
 
@@ -93,7 +91,7 @@ class Settings(QDialog):
         self.data["byte_size"] = int(self.port_bytesize.text())
         self.data["port_num"] = self.port_name.text()
         self.data["save_dir"] = self.dir_path.text()
-        self.data["delay"] = int(self.delay.text())
+        self.data["delay"] = float(self.delay.text())
 
         with open('user_file.json', 'w', encoding='utf-8') as f:
             json.dump(self.data, f, ensure_ascii=False, indent=4)
